@@ -6,7 +6,7 @@ from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 
-# 🔥 SAFE PATH FIX (VERY IMPORTANT)
+# SAFE PATHS (IMPORTANT FOR RAILWAY)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 model_path = os.path.join(BASE_DIR, "model.keras")
