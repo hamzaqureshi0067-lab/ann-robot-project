@@ -2,17 +2,24 @@ from flask import Flask, render_template, request
 import numpy as np
 import pickle
 import os
-from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+model = None
+scaler = None
+
 model_path = os.path.join(BASE_DIR, "model.keras")
 scaler_path = os.path.join(BASE_DIR, "scaler.pkl")
 
-model = load_model(model_path)
-scaler = pickle.load(open(scaler_path, "rb"))
+# Lazy loading (IMPORTANT for Railway)
+def load_model_and_scaler():
+    global model, scaler
+    if model is None:
+        from tensorflow.keras.models import load_model
+        model = load_model(model_path)
+        scaler = pickle.load(open(scaler_path, "rb"))
 
 @app.route('/')
 def home():
@@ -20,6 +27,8 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    load_model_and_scaler()
+
     f1 = float(request.form['f1'])
     f2 = float(request.form['f2'])
     f3 = float(request.form['f3'])
@@ -37,8 +46,10 @@ def predict():
         3: "Stop"
     }
 
-    return render_template("index.html",
-                           prediction_text=actions[result])
+    return render_template(
+        "index.html",
+        prediction_text=actions[result]
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
