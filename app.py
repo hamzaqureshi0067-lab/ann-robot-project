@@ -1,13 +1,19 @@
 from flask import Flask, render_template, request
 import numpy as np
 import pickle
+import os
 from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 
-# Load model + scaler
-model = load_model("model.keras")
-scaler = pickle.load(open("scaler.pkl", "rb"))
+# 🔥 SAFE PATH FIX (VERY IMPORTANT)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+model_path = os.path.join(BASE_DIR, "model.keras")
+scaler_path = os.path.join(BASE_DIR, "scaler.pkl")
+
+model = load_model(model_path)
+scaler = pickle.load(open(scaler_path, "rb"))
 
 @app.route('/')
 def home():
@@ -15,7 +21,6 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-
     f1 = float(request.form['f1'])
     f2 = float(request.form['f2'])
     f3 = float(request.form['f3'])
@@ -37,4 +42,5 @@ def predict():
                            prediction_text=actions[result])
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
